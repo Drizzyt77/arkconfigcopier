@@ -284,8 +284,14 @@ def main():
             sg.HSeperator()
         ],
         [
+          sg.Text("Select Folder with Plugins to Copy Over", justification='c')
+        ],
+        [
             sg.In(default_text=get_folder(), size=(30, 1), enable_events=True, key="-FOLDER-", disabled=True),
             sg.FolderBrowse()
+        ],
+        [
+          sg.HSeperator()
         ],
         [
             sg.Text("Below are files/folders that will be copied", justification='c')
@@ -507,20 +513,19 @@ def main():
                             continue
                     window["code_output"].update("\n".join(output))
                     recursive_file_move(os.path.join(data["folder"], file), map_path)
-                    for x in os.listdir(data["folder"]):
-                        if admin_list:
-                            if x != "AllowedCheaterSteamIDs.txt":
-                                pass
-                            else:
-                                output.append(f"Copying {x} to {server}")
+                    if admin_list:
+                        if file != "AllowedCheaterSteamIDs.txt":
+                            pass
                         else:
-                            if x == "AllowedCheaterSteamIDs.txt":
-                                pass
+                            output.append(f"Copying {file} to {server}")
+                    else:
+                        if file == "AllowedCheaterSteamIDs.txt":
+                            pass
+                        else:
+                            if os.path.isdir(os.path.join(data["folder"], file)):
+                                output.append(f"Copying Folder and Contents of {file} to {server}")
                             else:
-                                if os.path.isdir(os.path.join(data["folder"], x)):
-                                    output.append(f"Copying Folder and Contents of {x} to {server}")
-                                else:
-                                    output.append(f"Copying {x} to {server}")
+                                output.append(f"Copying {file} to {server}")
                         window["code_output"].update("\n".join(output))
                         window.refresh()
                 output.append(f"{server} Copy Complete!")
