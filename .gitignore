@@ -10,3 +10,4 @@ CopyFrom
 25xpve_backups
 test.py
 *.ico
+.idea
