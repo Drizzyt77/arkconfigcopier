@@ -2,3 +2,11 @@
 *.json
 venv
 *.exe
+*.dll
+CopyFrom
+50xpve
+25xpve
+50xpve_backups
+25xpve_backups
+test.py
+*.ico
