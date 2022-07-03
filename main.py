@@ -1,14 +1,12 @@
-import os, signal
+import os
 import shutil
 import subprocess
 
 import PySimpleGUIQt as sg
-import datetime
 import json
 from time import sleep
-import time
-from datetime import datetime
-
+from windows.configWindow import config_window
+from utils import get_data
 import psutil
 
 
@@ -20,9 +18,16 @@ def get_server_radio():
     num = 1
     for x in raw_servers:
         if num == 1:
-            servers.append(sg.Radio(x[0], "servers", key=f"server_radio_{num}", enable_events=True, default=True))
+            servers.append(sg.Radio(x[0], 
+                                    "servers",
+                                     key=f"server_radio_{num}",
+                                      enable_events=True,
+                                       default=True))
         else:
-            servers.append(sg.Radio(x[0], "servers", key=f"server_radio_{num}", enable_events=True))
+            servers.append(sg.Radio(x[0],
+                                     "servers",
+                                      key=f"server_radio_{num}", 
+                                      enable_events=True))
         num += 1
     return servers
 
@@ -112,88 +117,6 @@ def get_paths(num, admin):
     return paths
 
 
-def get_config_options():
-    with open("config.json", "r") as file:
-        data = json.loads(file.read())
-    servers = data["servers"]
-    names = []
-    paths = []
-    for name, value in servers.items():
-        names.append(name)
-        for loc, path in value.items():
-            paths.append(path)
-    final = []
-    num = 0
-    for n in names:
-        final.append(f"{n} | {paths[num]}")
-        num += 1
-
-    return final
-
-
-def config_window():
-    layout = [
-        [
-            sg.Text("Enter Entire Cluster Folder", justification='c')
-        ],
-        [
-            sg.Listbox(values=get_config_options(), size=(600, 300), enable_events=True, key="list_box")
-        ],
-        [
-            sg.InputText(key="option_select", enable_events=True, size=(10, .7)),
-            sg.In(key="folder_in", disabled=True, enable_events=True),
-            sg.FolderBrowse()
-        ],
-        [
-            sg.HSeperator()
-        ],
-        [
-            sg.Button("Add", key="add", enable_events=True),
-            sg.Button("Remove", key="remove", enable_events=True)
-        ],
-        [
-            sg.Button("Close", key="close", enable_events=True)
-        ]
-    ]
-    c_window = sg.Window("Config", layout=layout)
-    while True:
-        event, values = c_window.read()
-
-        if event == sg.WINDOW_CLOSED or event == "close":
-            c_window.close()
-            break
-        elif event == "list_box":
-            print(values["list_box"])
-            try:
-                x = values["list_box"][0].split(" | ")
-                c_window["folder_in"].update(x[1])
-                c_window["option_select"].update(x[0])
-            except IndexError:
-                c_window["folder_in"].update('')
-                c_window["option_select"].update('')
-            c_window.refresh()
-
-        elif event == "add":
-            with open('config.json', 'r') as file:
-                data = json.loads(file.read())
-            data["servers"][values["option_select"]] = {"location": f"{values['folder_in']}"}
-            with open("config.json", "w") as file:
-                json.dump(data, file, indent=2)
-            c_window["list_box"].update(get_config_options())
-            c_window.refresh()
-        elif event == "remove":
-            with open("config.json", "r") as file:
-                data = json.loads(file.read())
-            try:
-                del data["servers"][values["option_select"]]
-                with open("config.json", "w") as file:
-                    json.dump(data, file, indent=2)
-                c_window["list_box"].update(get_config_options())
-                c_window.refresh()
-            except KeyError:
-                continue
-
-
 def recursive_backup(src, dst, added):
     for file in os.listdir(src):
         if os.path.isdir(f"{src}\\{file}"):
@@ -247,7 +170,7 @@ def main():
             json.dump(data, file, indent=2)
     if "config.json" not in os.listdir(os.curdir):
         with open("config.json", "w") as file:
-            data = {"servers": {"tempname": {"location": "templocation"}}, "folder": ""}
+            data = {"servers": {"tempname": {"location": "templocation"}}, "folder": "", "admins": {}}
             json.dump(data, file, indent=2)
     with open("version.json", "r") as file:
         raw_version = json.loads(file.read())
@@ -284,17 +207,17 @@ def main():
             sg.HSeperator()
         ],
         [
-          sg.Text("Select Folder with Plugins to Copy Over", justification='c')
+            sg.Text("Select Folder with Plugins to Copy Over", justification='c')
         ],
         [
             sg.In(default_text=get_folder(), size=(30, 1), enable_events=True, key="-FOLDER-", disabled=True),
             sg.FolderBrowse()
         ],
         [
-          sg.HSeperator()
+            sg.HSeperator()
         ],
         [
-            sg.Text("Below are files/folders that will be copied", justification='c')
+            sg.Text("Below are files/folders that will be copied", justification='c', key="copy_text")
         ],
         get_server_checkboxes(),
         [
@@ -366,12 +289,14 @@ def main():
             window["path_output"].update("\n".join(paths))
 
         elif event == "admin_list":
+            data = get_data()
             if data["folder"] != "":
-                files = []
-                for x in os.listdir(data["folder"]):
-                    if x == "AllowedCheaterSteamIDs.txt":
-                        files.append(x)
-                window["file_output"].update("\n".join(files))
+                admins = data["admins"]
+                admin_list = []
+                for [key, value] in admins.items():
+                    admin_list.append(f"{key}  |  {value}")
+                window["file_output"].update("\n".join(admin_list))
+                window["copy_text"].update("Below are SteamIDs that will be updated to AllowedCheaterSteamIDs.txt")
             true_radio = None
             for i in range(3):
                 if values[f"server_radio_{i + 1}"]:
@@ -380,7 +305,6 @@ def main():
             if true_radio is None:
                 continue
             window["path_output"].update("\n".join(get_paths(true_radio, True)))
-
 
         elif event == "plugin_opt":
             if data["folder"] != "":
@@ -392,6 +316,7 @@ def main():
                         else:
                             files.append(x)
                 window["file_output"].update("\n".join(files))
+                window["copy_text"].update("Below are files/folders that will be copied")
             true_radio = None
             for i in range(3):
                 if values[f"server_radio_{i + 1}"]:
@@ -449,8 +374,7 @@ def main():
 
         elif event == "confirm_button":
             admin_list = False
-            with open("config.json", "r") as file:
-                data = json.loads(file.read())
+            data = get_data()
             if values["-FOLDER-"] == "Select folder where plugins will be pre-loaded":
                 continue
             true_radio = None
@@ -497,6 +421,10 @@ def main():
                 window.refresh()
                 replace_dll(values["-FOLDER-"])
                 sleep(2)
+            if admin_list:
+                admins = data["admins"]
+                with open(f"{values['-FOLDER-']}/AllowedCheaterSteamIDs.txt", "w") as file:
+                    file.write("\n".join(admins))
             for server in os.listdir(cluster):
                 if admin_list:
                     map_path = f"{cluster}\\{server}\\ShooterGame\\Saved"
