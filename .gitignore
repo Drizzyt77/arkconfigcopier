@@ -11,3 +11,5 @@ CopyFrom
 test.py
 *.ico
 .idea
+__pycache__
+.vs
