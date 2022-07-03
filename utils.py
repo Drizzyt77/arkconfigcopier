@@ -60,6 +60,6 @@ def check_steam_id(steamid):
         if len(steamid) == 17:
             steamid = int(steamid)
             status = True
-    except Exception as e:
-        print(e)
+    except ValueError:
+        pass
     return status
