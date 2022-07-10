@@ -9,6 +9,8 @@ from windows.configWindow import config_window
 from utils import get_data
 import psutil
 
+from windows.mapWipeWindow import wipeWindow
+
 
 def get_server_radio():
     with open("config.json", "r") as file:
@@ -170,7 +172,7 @@ def main():
             json.dump(data, file, indent=2)
     if "config.json" not in os.listdir(os.curdir):
         with open("config.json", "w") as file:
-            data = {"servers": {"tempname": {"location": "templocation"}}, "folder": "", "admins": {}}
+            data = {"servers": {"tempname": {"location": "templocation"}}, "folder": "", "admins": {}, "asm_folder": ""}
             json.dump(data, file, indent=2)
     with open("version.json", "r") as file:
         raw_version = json.loads(file.read())
@@ -181,6 +183,10 @@ def main():
         [
             sg.Button("Config Options", key="config_options", enable_events=True),
             sg.Button("Reload", key="reload", enable_events=True)
+        ],
+        [
+          sg.Button("Kals", visible=False),
+          sg.Button("Map Wipe Control", enable_events=True, key="wipeWindow")
         ],
         [
             sg.HSeperator()
@@ -245,7 +251,7 @@ def main():
         ]
     ]
 
-    window = sg.Window(f"Ark Config Copier v{version}", layout=layout, size=(750, 500))
+    window = sg.Window(f"Drizzyt Ark Manager v{version}", layout=layout, size=(750, 500))
     while True:
         event, values = window.read(timeout=15000, timeout_key='-REFRESH-')
 
@@ -255,6 +261,10 @@ def main():
             subprocess.Popen(["ArkConfigCopier.exe"],
                              executable=f"{os.curdir}\\ArkConfigCopier.exe")
             break
+        elif event == "wipeWindow":
+            window.hide()
+            wipeWindow()
+            window.un_hide()
         elif event == "exit_button":
             break
         elif event == "-FOLDER-":
@@ -346,10 +356,12 @@ def main():
                 window["file_output"].update("\n".join(files))
 
         elif event == "config_options":
+            window.hide()
             config_window()
             sg.PopupQuickMessage(
                 "If changes were made to clusters or directories you must press reload for them to take effect!",
                 background_color='grey')
+            window.un_hide()
 
         elif event == "backup_now":
             true_radio = None
@@ -422,7 +434,9 @@ def main():
                 replace_dll(values["-FOLDER-"])
                 sleep(2)
             if admin_list:
-                admins = data["admins"]
+                admins = []
+                for [key, value] in data["admins"].items():
+                    admins.append(key)
                 with open(f"{values['-FOLDER-']}/AllowedCheaterSteamIDs.txt", "w") as file:
                     file.write("\n".join(admins))
             for server in os.listdir(cluster):

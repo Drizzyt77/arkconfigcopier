@@ -43,7 +43,7 @@ def check_update():
         window['-TEXT-'].update("Starting update...")
         window.Refresh()
         url = f'https://github.com/Drizzyt77/arkconfigcopier/releases/download/{latest_version}/main.exe'
-        filename = 'ArkConfigCopier.exe'
+        filename = 'DrizzytArkManager.exe'
         urllib.request.urlretrieve(url, filename)
         data["version"] = latest_version
         with open("version.json", "w") as f:
@@ -51,12 +51,12 @@ def check_update():
         window['-TEXT-'].update("Update completed!")
         window.Refresh()
         sleep(2)
-        subprocess.Popen(['ArkConfigCopier.exe'])
+        subprocess.Popen(['DrizzytArkManager.exe'])
     else:
         window['-TEXT-'].update("Up to date, running program!")
         window.Refresh()
         sleep(2)
-        subprocess.Popen(['ArkConfigCopier.exe'])
+        subprocess.Popen(['DrizzytArkManager.exe'])
 
 
 if __name__ == '__main__':

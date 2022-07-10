@@ -2,8 +2,7 @@ import PySimpleGUIQt as sg
 from utils import get_config_options, get_data, get_admins, get_admin_names, check_steam_id
 import json
 
-
-def config_window():
+def get_layout():
     layout = [
         [
             sg.Text("Enter Each Entire Cluster Folder", justification='c')
@@ -46,7 +45,11 @@ def config_window():
             sg.Button("Close", key="close", enable_events=True)
         ]
     ]
-    window = sg.Window("Config", layout=layout)
+    return layout
+
+
+def config_window():
+    window = sg.Window("Config", layout=get_layout())
     while True:
         event, values = window.read()
 
