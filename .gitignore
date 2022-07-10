@@ -14,3 +14,5 @@ test.py
 __pycache__
 .vs
 createTestFiles.py
+.project
+.pydevproject
